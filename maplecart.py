@@ -1,13 +1,14 @@
 import streamlit as st
-from pyzbar.pyzbar import decode
+import cv2
+import numpy as np
 from PIL import Image
 
-# Barcode Scanner
+# Barcode Scanner using OpenCV
 def scan_barcode(image):
-    decoded_objects = decode(image)
-    for obj in decoded_objects:
-        return obj.data.decode('utf-8')
-    return None
+    image_np = np.array(image)
+    detector = cv2.QRCodeDetector()
+    data, bbox, _ = detector.detectAndDecode(image_np)
+    return data if data else None
 
 # Function to Check if Barcode is Canadian
 def is_canadian_product(barcode):
