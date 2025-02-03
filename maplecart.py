@@ -17,16 +17,29 @@ st.header("Mobile Camera Barcode Scanner")
 # Add a Scan Barcode Button
 if st.button("Scan Barcode"):
     st.markdown('''
-        <video id="video" width="300" height="200" autoplay></video>
+        <video id="video" width="300" height="200" autoplay playsinline></video>
         <canvas id="canvas" width="300" height="200" style="display:none;"></canvas>
         <script src="https://unpkg.com/@zxing/library@latest"></script>
         <script>
-            const codeReader = new ZXing.BrowserMultiFormatReader();
-            codeReader.decodeFromConstraints({ video: { facingMode: "environment" } }, 'video', (result, err) => {
-                if (result) {
-                    window.parent.postMessage(result.text, '*');
+            async function startCamera() {
+                try {
+                    const stream = await navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } });
+                    const videoElement = document.getElementById('video');
+                    videoElement.srcObject = stream;
+
+                    const codeReader = new ZXing.BrowserMultiFormatReader();
+                    codeReader.decodeFromVideoElement(videoElement, (result, err) => {
+                        if (result) {
+                            window.parent.postMessage(result.text, '*');
+                            stream.getTracks().forEach(track => track.stop());  // Stop the camera after successful scan
+                        }
+                    });
+                } catch (error) {
+                    console.error('Error accessing camera:', error);
+                    alert('Camera access denied or unavailable. Please allow camera access and try again.');
                 }
-            });
+            }
+            startCamera();
         </script>
     ''', unsafe_allow_html=True)
 
