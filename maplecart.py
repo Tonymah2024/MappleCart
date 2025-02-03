@@ -1,14 +1,7 @@
 import streamlit as st
-import cv2
 import numpy as np
 from PIL import Image
-
-# Barcode Scanner using OpenCV
-def scan_barcode(image):
-    image_np = np.array(image)
-    detector = cv2.QRCodeDetector()
-    data, bbox, _ = detector.detectAndDecode(image_np)
-    return data if data else None
+import base64
 
 # Function to Check if Barcode is Canadian
 def is_canadian_product(barcode):
@@ -18,38 +11,30 @@ def is_canadian_product(barcode):
 # Streamlit App
 st.title("MapleCart - Check if a Product is Canadian")
 
-# Barcode Scanner
-st.header("Scan Barcode")
-barcode_image = st.file_uploader("Upload Barcode Image", type=["png", "jpg", "jpeg"])
+# Mobile Camera Barcode Scanner using HTML5
+st.header("Mobile Camera Barcode Scanner")
+st.markdown('''
+    <video id="video" width="300" height="200" autoplay></video>
+    <button id="snap">Scan Barcode</button>
+    <canvas id="canvas" width="300" height="200" style="display:none;"></canvas>
+    <script>
+        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
+            .then(function(stream) {
+                document.getElementById('video').srcObject = stream;
+            });
 
-# Real-Time Camera Barcode Scanner
-st.header("Real-Time Camera Barcode Scanner")
-start_camera = st.button("Start Camera")
+        document.getElementById('snap').onclick = function() {
+            var canvas = document.getElementById('canvas');
+            var context = canvas.getContext('2d');
+            context.drawImage(document.getElementById('video'), 0, 0, 300, 200);
+            var dataURL = canvas.toDataURL('image/png');
+            window.parent.postMessage(dataURL, '*');
+        };
+    </script>
+''', unsafe_allow_html=True)
 
-if start_camera:
-    cap = cv2.VideoCapture(0)
-    stframe = st.empty()
-
-    while cap.isOpened():
-        ret, frame = cap.read()
-        if not ret:
-            st.error("Failed to capture from camera")
-            break
-
-        detector = cv2.QRCodeDetector()
-        data, bbox, _ = detector.detectAndDecode(frame)
-
-        if data:
-            st.success(f"Detected Barcode: {data}")
-            if is_canadian_product(data):
-                st.success("✅ This product is Canadian.")
-            else:
-                st.warning("⚠️ This product is not recognized as Canadian.")
-            break
-
-        stframe.image(frame, channels="BGR")
-
-    cap.release()
+# Receive Barcode Data from Client
+barcode_data = st.text_input("Paste the scanned barcode here (if auto-fill doesn't work):")
 
 # Manual Verification
 st.header("Manual Product Verification")
@@ -66,11 +51,9 @@ def verify_product(barcode):
     else:
         st.info("Please enter a barcode to verify.")
 
-# Barcode Image Upload Verification
-if barcode_image:
-    image = Image.open(barcode_image)
-    barcode = scan_barcode(image)
-    verify_product(barcode)
+# Barcode Verification
+if barcode_data:
+    verify_product(barcode_data)
 
 # Manual Barcode Verification
 if manual_barcode:
