@@ -11,30 +11,24 @@ def is_canadian_product(barcode):
 # Streamlit App
 st.title("MapleCart - Check if a Product is Canadian")
 
-# Mobile Camera Barcode Scanner using HTML5
+# Mobile Camera Barcode Scanner using HTML5 and Barcode Detection
 st.header("Mobile Camera Barcode Scanner")
 st.markdown('''
     <video id="video" width="300" height="200" autoplay></video>
-    <button id="snap">Scan Barcode</button>
     <canvas id="canvas" width="300" height="200" style="display:none;"></canvas>
+    <script src="https://unpkg.com/@zxing/library@latest"></script>
     <script>
-        navigator.mediaDevices.getUserMedia({ video: { facingMode: "environment" } })
-            .then(function(stream) {
-                document.getElementById('video').srcObject = stream;
-            });
-
-        document.getElementById('snap').onclick = function() {
-            var canvas = document.getElementById('canvas');
-            var context = canvas.getContext('2d');
-            context.drawImage(document.getElementById('video'), 0, 0, 300, 200);
-            var dataURL = canvas.toDataURL('image/png');
-            window.parent.postMessage(dataURL, '*');
-        };
+        const codeReader = new ZXing.BrowserMultiFormatReader();
+        codeReader.decodeFromConstraints({ video: { facingMode: "environment" } }, 'video', (result, err) => {
+            if (result) {
+                window.parent.postMessage(result.text, '*');
+            }
+        });
     </script>
 ''', unsafe_allow_html=True)
 
 # Receive Barcode Data from Client
-barcode_data = st.text_input("Paste the scanned barcode here (if auto-fill doesn't work):")
+barcode_data = st.text_input("Scanned Barcode (auto-filled):")
 
 # Manual Verification
 st.header("Manual Product Verification")
