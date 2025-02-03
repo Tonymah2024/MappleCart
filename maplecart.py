@@ -13,19 +13,22 @@ st.title("MapleCart - Check if a Product is Canadian")
 
 # Mobile Camera Barcode Scanner using HTML5 and Barcode Detection
 st.header("Mobile Camera Barcode Scanner")
-st.markdown('''
-    <video id="video" width="300" height="200" autoplay></video>
-    <canvas id="canvas" width="300" height="200" style="display:none;"></canvas>
-    <script src="https://unpkg.com/@zxing/library@latest"></script>
-    <script>
-        const codeReader = new ZXing.BrowserMultiFormatReader();
-        codeReader.decodeFromConstraints({ video: { facingMode: "environment" } }, 'video', (result, err) => {
-            if (result) {
-                window.parent.postMessage(result.text, '*');
-            }
-        });
-    </script>
-''', unsafe_allow_html=True)
+
+# Add a Scan Barcode Button
+if st.button("Scan Barcode"):
+    st.markdown('''
+        <video id="video" width="300" height="200" autoplay></video>
+        <canvas id="canvas" width="300" height="200" style="display:none;"></canvas>
+        <script src="https://unpkg.com/@zxing/library@latest"></script>
+        <script>
+            const codeReader = new ZXing.BrowserMultiFormatReader();
+            codeReader.decodeFromConstraints({ video: { facingMode: "environment" } }, 'video', (result, err) => {
+                if (result) {
+                    window.parent.postMessage(result.text, '*');
+                }
+            });
+        </script>
+    ''', unsafe_allow_html=True)
 
 # Receive Barcode Data from Client
 barcode_data = st.text_input("Scanned Barcode (auto-filled):")
