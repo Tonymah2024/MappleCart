@@ -22,6 +22,35 @@ st.title("MapleCart - Check if a Product is Canadian")
 st.header("Scan Barcode")
 barcode_image = st.file_uploader("Upload Barcode Image", type=["png", "jpg", "jpeg"])
 
+# Real-Time Camera Barcode Scanner
+st.header("Real-Time Camera Barcode Scanner")
+start_camera = st.button("Start Camera")
+
+if start_camera:
+    cap = cv2.VideoCapture(0)
+    stframe = st.empty()
+
+    while cap.isOpened():
+        ret, frame = cap.read()
+        if not ret:
+            st.error("Failed to capture from camera")
+            break
+
+        detector = cv2.QRCodeDetector()
+        data, bbox, _ = detector.detectAndDecode(frame)
+
+        if data:
+            st.success(f"Detected Barcode: {data}")
+            if is_canadian_product(data):
+                st.success("✅ This product is Canadian.")
+            else:
+                st.warning("⚠️ This product is not recognized as Canadian.")
+            break
+
+        stframe.image(frame, channels="BGR")
+
+    cap.release()
+
 # Manual Verification
 st.header("Manual Product Verification")
 manual_barcode = st.text_input("Enter Barcode Number Manually")
