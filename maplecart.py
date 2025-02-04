@@ -5,7 +5,7 @@ import base64
 
 # Function to Check if Barcode is Canadian
 def is_canadian_product(barcode):
-    canadian_prefixes = tuple(str(i).zfill(3) for i in range(0, 14)) + ('754', '755')  # Updated Canadian GS1 prefixes
+    canadian_prefixes = tuple(str(i).zfill(3) for i in range(0, 14)) + range(754, 755)  # Updated Canadian GS1 prefixes
     return barcode.startswith(canadian_prefixes)
 
 # Streamlit App
